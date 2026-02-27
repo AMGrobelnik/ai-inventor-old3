@@ -1,0 +1,79 @@
+# Ability Server Configuration
+# ============================
+# API keys are hardcoded in skill scripts (not set here).
+
+server:
+  host: "0.0.0.0"
+  port: 8100
+  timeout: 180  # Request timeout in seconds (used by both server and client)
+
+# Retry configuration for transient errors (connection drops, timeouts, etc.)
+retry:
+  mode: exponential     # Retry strategy: "exponential" (only valid option for now)
+  max_retries: 3        # Max retry attempts (0 = no retries)
+  min_backoff: 1.0      # Initial backoff in seconds
+  max_backoff: 20.0     # Maximum backoff cap in seconds
+
+# Worker memory recycling
+# Workers that exceed max_memory_mb are gracefully restarted after finishing
+# the current request. Prevents OOM kills from memory-leaking libraries.
+worker_memory:
+  max_memory_mb: 2048  # Restart worker if RSS exceeds this (MB)
+  check_interval: 10   # Check memory every N requests (0 = disabled)
+
+# Temp file cleanup configuration
+# Automatically removes old downloaded datasets/tables to prevent disk bloat
+cleanup:
+  max_age_hours: 1.0    # Delete files older than this (hours)
+  interval_minutes: 10  # How often to check for old files (minutes)
+
+# =============================================================================
+# Endpoint-specific settings (max_threads = concurrent requests per endpoint)
+# =============================================================================
+
+endpoints:
+  aii_hf_search_datasets:
+    max_threads: 30
+  aii_hf_preview_datasets:
+    max_threads: 30
+  aii_hf_download_datasets:
+    max_threads: 30
+  aii_web_search:
+    max_threads: 30
+  aii_web_fetch:
+    max_threads: 30
+  aii_web_fetch_grep:
+    max_threads: 30
+  aii_verify_quotes:
+    max_threads: 30
+  aii_lean:
+    max_threads: 30
+  aii_lean_suggest:
+    max_threads: 30
+  aii_mathlib_semantic_search:
+    max_threads: 30
+  aii_mathlib_pattern_search:
+    max_threads: 30
+  aii_openrouter_search:
+    max_threads: 30
+  aii_openrouter_call:
+    max_threads: 30
+  aii_openrouter_get_params:
+    max_threads: 30
+  aii_owid_search_datasets:
+    max_threads: 30
+  aii_owid_download_datasets:
+    max_threads: 30
+  aii_json_validate:
+    max_threads: 30
+  aii_json_format:
+    max_threads: 30
+  dblp_bib_search:
+    max_threads: 1  # single-threaded to enforce 2s rate limit on DBLP API
+  dblp_bib_fetch:
+    max_threads: 1  # single-threaded — shares DBLP's per-IP rate limit
+  aii_image_gen_nano_banana:
+    max_threads: 30
+  # ToolUniverse MCP server (uses SMCP's internal ThreadPoolExecutor)
+  tooluniverse_mcp:
+    max_threads: 30

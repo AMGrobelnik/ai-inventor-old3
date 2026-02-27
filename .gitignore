@@ -1,0 +1,112 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+runs/
+aii_pipeline/runs/
+temp/
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.out
+
+# Python pickle files
+*.pkl
+
+# Jupyter
+.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# MCP config (contains machine-specific paths)
+.mcp.json
+
+# Datasets (download from HuggingFace as needed)
+datasets/
+
+# .claude skill artifacts (large files - download/generate separately)
+.claude/skills/**/scripts/.venv/
+.claude/skills/**/temp/
+.claude/skills/**/scripts/__pycache__/
+.claude/skills/aii_owid_datasets/_index/
+.claude/skills/aii_owid_datasets/_setup/
+.claude/skills/archived/
+
+# Temp/checkpoint dirs
+**/temp2/
+**/checkpoints/
+**/checkpoint_*.json
+**/table_metadata.json
+**/table_metadata_filtered.json
+
+# Node modules
+**/node_modules/
+
+# Backup files
+.bak/

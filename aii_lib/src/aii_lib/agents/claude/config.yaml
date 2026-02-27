@@ -1,0 +1,16 @@
+# Claude Agent Global Settings
+
+usage_tracking:
+  enabled: true  # Enable usage monitoring by default
+  check_interval_seconds: 60  # How often to check usage
+
+  # Per-metric thresholds (block when usage >= threshold %)
+  # Set to null to disable monitoring for that metric
+  thresholds:
+    current_session: 70  # Session usage threshold
+    current_week_all_models: 90  # Total model usage threshold
+    current_week_sonnet: 100  # Sonnet-specific threshold (100 = effectively disabled)
+
+telemetry:
+  enabled: true
+  log_file: /tmp/claude_usage_telemetry.jsonl

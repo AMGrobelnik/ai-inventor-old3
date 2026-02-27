@@ -1,0 +1,30 @@
+# ============================================================================
+# LLM Clients Configuration
+# ============================================================================
+# API keys are loaded from .env via load_dotenv() — do NOT put keys here.
+
+# OpenAI Configuration (sync with background polling)
+openai:
+  default_model: gpt-5
+  reasoning_effort: high
+  verbosity: medium
+  service_tier: default
+  poll_interval: 10
+
+# Anthropic Configuration (async)
+anthropic:
+  default_model: claude-sonnet-4-20250514
+  max_tokens: 20000  # Required by Anthropic API (must be > thinking_budget, total ~36k max without streaming)
+  temperature: 1.0
+  extended_thinking: true
+  thinking_budget: 16000  # Required when thinking is enabled
+
+# Gemini Configuration (async)
+gemini:
+  default_model: gemini-2.5-flash
+  temperature: 1.0
+  thinking_budget: null  # Set to enable thinking
+
+# OpenRouter Configuration
+openrouter:
+  default_model: anthropic/claude-sonnet-4

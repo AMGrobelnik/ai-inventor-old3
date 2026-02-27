@@ -1,0 +1,25 @@
+# ToolUniverse MCP Server Configuration
+# Two HTTP servers for different use cases
+
+# AII ToolUniverse - filtered tools only (web + dblp)
+aii_tooluniverse:
+  port: 8101
+  host: "127.0.0.1"
+  max_threads: 30
+  compact_mode: false
+  search_enabled: false
+  include_tools:
+    - aii_web_search_fast
+    - aii_web_fetch_direct
+    - aii_web_fetch_grep
+    - dblp_bib_search
+    - dblp_bib_fetch
+
+# Full ToolUniverse - all 775+ tools via execute_tool meta-tool
+full_tooluniverse:
+  port: 8102
+  host: "127.0.0.1"
+  max_threads: 30
+  compact_mode: true
+  search_enabled: true
+  include_tools: null  # All tools

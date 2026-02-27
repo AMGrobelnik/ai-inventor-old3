@@ -1,0 +1,7 @@
+aii_web_search_fast
+aii_web_fetch_direct
+aii_web_fetch_grep
+dblp_bib_search
+openrouter_search_llms
+openrouter_call_llm
+lean_run_code

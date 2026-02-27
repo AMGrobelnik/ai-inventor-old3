@@ -1,0 +1,689 @@
+# ============================================================================
+# CLAUDE AGENT GLOBAL SETTINGS
+# ============================================================================
+claude_agent_global:
+  usage_tracking:
+    enabled: true # Monitor usage and block calls when limits are near
+    check_interval_seconds: 60 # How often to check usage
+
+    # Per-metric thresholds (block when usage >= threshold %)
+    # Set to null to disable monitoring for that metric
+    thresholds:
+      current_session: 90 # Session usage threshold
+      current_week_all_models: 95 # Total model usage threshold
+      current_week_sonnet: 100 # Sonnet-specific threshold (100 = effectively disabled)
+
+  telemetry:
+    enabled: true
+    log_file: /tmp/claude_usage_telemetry.jsonl
+
+# ============================================================================
+# TELEMETRY (console/JSON logging for all modules)
+# ============================================================================
+telemetry:
+  # Max chars for console output (null/false = no truncation)
+  # Truncated: assistant, or_msg, tool_call, tool_result, module_output
+  # Never truncated: prompt, system, summary, thinking, info, success, warning, error
+  console_msg_truncate: 80000
+  log_messages: true # Log LLM messages (prompts, tool calls, etc). If false, only log summaries/task lifecycle
+
+# ============================================================================
+# INITIALIZATION
+# ============================================================================
+init:
+  # ==========================================================================
+  # Research directions
+  # ==========================================================================
+
+  # Jamnik — Interpretable Oblique Tree Ensembles
+  research_direction: >-
+    Interpretable Oblique Tree Ensembles for Tabular Data:
+    Something genuinely novel and groundbreaking that builds on RO-FIGS (Random Oblique Fast Interpretable Greedy-Tree Sums, Jamnik et al. 2025 IEEE CITREx).
+  run_name: "" # Custom run name (empty = use timestamp, non-empty = use custom name with unique ID if folder exists)
+  outputs_directory: runs # Relative to aii_pipeline/ dir (resolved in cli.py); or use absolute path
+
+  pipeline:
+    # Module execution range: seed_hypo, gen_hypo, invention_loop, gen_paper_repo
+    first_step: "seed_hypo"
+    last_step: "gen_paper_repo"
+
+    # Invention loop iteration control (only applies when running invention_loop module)
+    # Resume from previous run's 3_invention_loop dir (copies pools)
+    # invention_loop_resume_dir: "/path/to/runs/<run_name>/3_invention_loop"
+    invention_loop_first_step: auto
+    # invention_loop_last_step: gen_art
+
+    # Module outputs (uncomment and set path to resume from that module's output)
+    # Order matches pipeline execution: 1_seed_hypo → 2_gen_hypo → 3_invention_loop → 4_gen_paper_repo
+    # seed_hypo_out_dir: "/path/to/runs/<run_name>/1_seed_hypo"
+    # gen_hypo_out_dir: "/path/to/runs/<run_name>/2_gen_hypo"
+    # audit_hypo_out_dir: "/path/to/runs/<run_name>/3_audit_hypo"
+    # rank_hypo_out_dir: "/path/to/runs/<run_name>/4_rank_hypo"
+    # invention_loop_out_dir: "/path/to/runs/<run_name>/3_invention_loop"
+    # gen_paper_repo_out_dir: "/path/to/runs/<run_name>/4_gen_paper_repo"
+
+    # Gen paper repo resume options
+    # Steps: 1:create_repo → 2a:write_paper+2b:gen_demos → 3:gen_viz → 4:gen_full_paper → 5:deploy_repo
+    # gen_paper_resume_dir: "/path/to/runs/<run_name>/4_gen_paper_repo"
+    # gen_paper_first_step: "deploy_repo"  # Skip earlier steps, load from resume_dir
+
+# ============================================================================
+# MODULE 1: SEED_HYPO (Hypothesis Seed Generation)
+# ============================================================================
+# Steps: gen_seeds → sample_seeds. Set *_out_dir to resume from that step's output.
+seed_hypo:
+  first_step: gen_seeds # gen_seeds | sample_seeds
+  last_step: sample_seeds # gen_seeds | sample_seeds
+
+  # Invention KG pipeline (gen_seeds method)
+  # Steps: sel_topics → get_papers → clean_papers → get_triples → add_wikidata →
+  #        link_to_papers → gen_hypo_seeds → gen_hypo_prompt → gen_graphs
+  invention_kg:
+    first_step: sel_topics # kg step to start from
+    last_step: gen_graphs # kg step to end at
+
+    # Resume dirs (set the one BEFORE first_step)
+    # sel_topics_out_dir: ""
+    # get_papers_out_dir: ""
+    # clean_papers_out_dir: ""
+    # get_triples_out_dir: "/path/to/runs/<run_name>/1_seed_hypo/_4_triples"
+    # add_wikidata_out_dir: ""
+    # link_to_papers_out_dir: "/path/to/runs/<run_name>/1_seed_hypo/_6_paper_triples"
+    # gen_hypo_seeds_out_dir: ""
+    # gen_hypo_prompt_out_dir: ""
+
+    sel_topics:
+      topics:
+        - "Data Mining Algorithms and Applications"
+        - "Opinion Dynamics and Social Influence"
+        # - "Multi-Agent Systems and Negotiation"
+        # - "Formal Methods in Verification"
+        # - "Distributed Control Multi-Agent Systems"
+        # - "Reinforcement Learning in Robotics"
+        # - "Evolutionary Game Theory and Cooperation"
+        # - "Speech and dialogue systems"
+
+    get_papers:
+      email: "adrian.m.grobelnik@ijs.si"
+      papers_per_year: 3
+      year_range: { start: 2020, end: 2025 }
+      sort_by: "cited_by_count" # cited_by_count | publication_date | relevance_score
+
+    get_triples:
+      max_papers: -1 # Total papers to process (-1 = all)
+      max_concurrent_agents: 10 # Max concurrent agent processes
+      stagger_delay: 2 # Seconds between starting each agent
+      url_verification_retries: 2 # Retries for Wikipedia URL verification
+      min_valid_urls: 0 # Min valid URLs before restructuring vs searching again (0 = always search)
+      claude_agent:
+        model: claude-haiku-4-5 # claude-haiku-4-5, claude-sonnet-4-5, claude-opus-4-6
+        max_turns: 100 # Max agent turns per paper
+        agent_timeout: 1200 # Total timeout for entire agent (null = no limit)
+        agent_retries: 2 # Retries for entire agent session
+        seq_prompt_timeout: 600 # 5 min timeout per prompt
+        seq_prompt_retries: 3 # Retries per prompt
+        message_timeout: 120 # Per-message timeout in seconds
+        message_retries: 3 # Fork+resume attempts for message-level timeouts
+        use_aii_web_tools: true # MCP aii_web_search_fast/aii_web_fetch_direct vs built-in WebSearch/WebFetch
+        # Note: Uses aii_web_search_fast and aii_web_fetch_direct MCP tools automatically
+        # via get_tooluniverse_mcp_config() in the gen_kg workflow
+        # System prompt is defined in aii_pipeline/prompts/steps/_1_seed_hypo/_invention_kg/get_triples/s_prompt.py
+
+    gen_hypo_seeds:
+      blind_spots:
+        min_shared_concepts: 1 # Min shared concepts between topics
+        max_similarity: 1.0 # Max Jaccard similarity (1.0 = no filter)
+        entity_types: [method, concept] # method | concept | task | tool | artifact | data | other
+
+    gen_graph:
+      temporal_windows: [[2018, 2020], [2021, 2023], [2024, 2025]]
+
+    viz_graph:
+      port: 9020
+
+  # Sampling config (sample_seeds step)
+  sampling:
+    sel_topics: auto # auto (BM25 match) or ["Topic A", "Topic B"]
+    research_dir_topic_match_k: 1 # topics to match via BM25
+    seed_sampling_pool: 20 # top N seeds per topic
+    topics_per_agent: 2 # topics per agent (round-robin)
+    seeds_per_topic: 1 # seeds per topic per agent
+
+# ============================================================================
+# MODULE 2: HYPOTHESIS GENERATION (OpenRouter + ToolUniverse)
+# ============================================================================
+# Tools: aii_web_search_fast (Serper API), aii_web_fetch_direct (aiohttp)
+# Total hypotheses = (seeded + unseeded) × num_models
+gen_hypo:
+  seeded_hypos_per_llm: 0 # Hypotheses with inspiration seeds from prep_context
+  unseeded_hypos_per_llm: 1 # Hypotheses without seeds (open generation)
+  research_grounding: false # Disable MCP tools (aii_web_search_fast etc.) — agent uses built-in WebSearch/WebFetch instead
+
+  llm_client:
+    client: openrouter
+    llm_timeout: 1200
+
+    # --- PRO (flagship, expensive) ---
+    models:
+      # - model: anthropic/claude-opus-4.5 # $5/$25
+      #   reasoning_effort: low
+      #   suffix: nitro
+      #     max_tool_iterations: 30
+      #   - model: google/gemini-3-pro-preview # $2/$12
+      #     reasoning_effort: low
+      #     suffix: nitro
+      #     max_tool_iterations: 30
+      - model: openai/gpt-5.2 # $3/$15
+        reasoning_effort: low
+        suffix: nitro
+        max_tool_iterations: 30
+
+    # --- LITE (cost-effective) ---
+    # models:
+    #   - model: deepseek/deepseek-v3.2
+    #     reasoning_effort: medium
+    #     suffix: nitro
+    #     max_tool_iterations: 100
+    #   - model: x-ai/grok-4.1-fast # $0.20/$0.50
+    #     reasoning_effort: medium
+    #     suffix: nitro
+    #     max_tool_iterations: 100
+    #   - model: openai/gpt-oss-120b # $0.04/$0.19
+    #     reasoning_effort: medium
+    #     suffix: nitro
+    #     max_tool_iterations: 100
+
+  # --- Claude Agent Mode (experimental) ---
+  # If true, uses Claude Agent SDK with structured output instead of OpenRouter
+  # Agent has full tool access (Read, Write, Bash, WebSearch, etc.)
+  # Total hypotheses = seeded + unseeded (single model)
+  use_claude_agent: true
+  claude_agent:
+    model: claude-opus-4-6 # claude-haiku-4-5, claude-sonnet-4-6, claude-opus-4-6
+    max_turns: 100
+    agent_timeout: 2400 # 30 min for entire agent
+    agent_retries: 2
+    seq_prompt_timeout: 1800 # 15 min per prompt
+    seq_prompt_retries: 3
+    message_timeout: 300 # Per-message timeout (5 min)
+    message_retries: 3 # Fork+resume attempts for message-level timeouts
+    max_concurrent_agents: 30
+    use_aii_web_tools: false # MCP aii_web_search_fast/aii_web_fetch_direct vs built-in WebSearch/WebFetch
+
+# ============================================================================
+# MODULE 3: INVENTION LOOP (Iterative Scientific Invention)
+# ============================================================================
+# The Loop: GEN_STRAT → GEN_PLAN → GEN_ART → GEN_NARR → loop
+# Three Pools: PlanPool, ArtifactPool, NarrativePool
+invention_loop:
+  max_iterations: 4
+  # test_all_artifacts: true # Testing mode: propose creates exactly 1 of each creatable type, rank_prop accepts all
+
+  # Allowed artifact types to execute (for testing individual executors)
+  # Empty list or omit = all types allowed
+  # Options: research, experiment, dataset, evaluation, proof
+  allowed_artifacts:
+    - research
+    - experiment
+    - dataset
+    - evaluation
+    - proof
+
+  # --- Step 3.1: GEN_STRAT (Multi-LLM strategy generation) ---
+  gen_strat:
+    calls_per_llm: 1 # Parallel calls per model (total tasks = calls_per_llm × num_models)
+    strats_per_call: 1 # Strategies generated per LLM call
+    art_limit: 3 # Max artifact directions per strategy (included in prompt + enforced with retry)
+    max_concurrent: 20 # Max parallel tasks (applies to both OpenRouter and Claude agent)
+    artifact_context_per_type: 10 # Max artifacts shown per type in LLM prompt context
+
+    # Artifact verification settings - verify strategies before accepting
+    # Similar to verify_citations in audit_hypo, retries with feedback if invalid
+    verify_artifacts:
+      retry: 5 # Number of retry attempts if validation fails (sends failure details back to LLM)
+      # Minimum valid artifacts required PER LLM CALL (not per strategy, not cumulative across all LLMs)
+      # If strats_per_call=2, this checks across both strategies from that single call
+      min_valid_artifacts: 1
+
+    llm_client:
+      client: openrouter
+      llm_timeout: 600
+      models:
+        - model: anthropic/claude-opus-4.5
+          reasoning_effort: low
+          suffix: nitro
+        - model: google/gemini-3-pro-preview
+          reasoning_effort: low
+          suffix: nitro
+        - model: openai/gpt-5.2-pro
+          reasoning_effort: low
+          suffix: nitro
+    use_claude_agent: true # Use Claude agent instead of OpenRouter
+    claude_agent:
+      model: claude-opus-4-6
+      max_turns: 50
+      agent_timeout: 1800
+      agent_retries: 2
+      seq_prompt_timeout: 1800
+      seq_prompt_retries: 3
+      message_timeout: 300 # Per-message timeout (5 min)
+      message_retries: 3 # Fork+resume attempts for message-level timeouts
+      use_aii_web_tools: false
+
+  # --- Step 3.2: GEN_PLAN (Elaborate artifact_directions into plans) ---
+  # Gen_plan takes artifact_directions from ALL strategies and elaborates each into plans
+  # Total plans = total_artifact_directions_across_strats × num_models × plans_per_strat
+  gen_plan:
+    plans_per_strat: 1 # Plans per (artifact_direction, llm) combination
+    llm_client:
+      client: openrouter
+      llm_timeout: 600
+      models:
+        - model: anthropic/claude-opus-4.5
+          reasoning_effort: low
+          suffix: nitro
+        - model: google/gemini-3-pro-preview
+          reasoning_effort: low
+          suffix: nitro
+        - model: openai/gpt-5.2-pro
+          reasoning_effort: low
+          suffix: nitro
+    use_claude_agent: true # Use Claude agent instead of OpenRouter
+    claude_agent:
+      model: claude-opus-4-6
+      max_turns: 200
+      agent_timeout: 2400
+      agent_retries: 2
+      seq_prompt_timeout: 1800
+      seq_prompt_retries: 3
+      message_timeout: 300 # Per-message timeout (5 min)
+      message_retries: 3 # Fork+resume attempts for message-level timeouts
+      max_concurrent_agents: 30
+      use_aii_web_tools: false
+
+  # --- Step 3.3: GEN_ART (MODULE GROUP - Type-specific artifact execution) ---
+  # GEN_ART executes all artifact types in parallel (controlled by max_concurrent_artifacts):
+  #   RESEARCH → research.py (research questions via web search)
+  #   DATASET  → dataset.py  (HuggingFace/OWID data acquisition)
+  #   EXPERIMENT → experiment.py (methodology implementation)
+  #   EVALUATION → evaluation.py (experiment result assessment)
+  #   PROOF    → proof.py    (Lean 4 formal verification)
+  # All plans run together (e.g., 2 research + 1 experiment + 2 datasets at once).
+  execute:
+    max_concurrent_artifacts: 10 # Max artifacts executing in parallel (all types run together)
+
+    # RESEARCH sub-module: OpenRouter with research_workflow (web search) or Claude agent
+    research:
+      model: gpt-5-mini
+      reasoning_effort: medium
+      max_tool_iterations: 10 # Max web search/fetch cycles before forcing output
+      llm_timeout: 300
+      use_claude_agent: true # Use Claude agent instead of OpenRouter
+      verify_retries: 2 # Retries for missing expected files
+      schema_retries: 1 # Retries for schema validation errors
+      claude_agent:
+        model: claude-opus-4-6
+        max_turns: 100
+        agent_timeout: 3600 # 1 hour total
+        agent_retries: 2 # Retries for entire agent session (API errors)
+        seq_prompt_timeout: 1800 # 30 minutes per prompt
+        seq_prompt_retries: 3 # Retries per API call (network/rate limit)
+        message_timeout: 300 # Per-message timeout (5 min)
+        message_retries: 3 # Fork+resume attempts for message-level timeouts
+        use_aii_web_tools: false
+
+    # DATASET sub-module: Claude Code SDK agent
+    dataset:
+      verify_retries: 2 # Retries for missing expected files
+      schema_retries: 2 # Retries for schema validation errors
+      min_examples: 50 # Min examples in full_data_out.json
+      dataset_max_size: "300MB" # Max dataset size (shown in prompt, e.g. "300MB", "1GB")
+      dataset_search_tool_cap: 50 # Max keyword searches in TODO 1
+      dataset_chosen_for_preview_cap: 25 # Max datasets chosen for preview in TODO 2
+      dataset_chosen_for_download_cap: 15 # Max datasets chosen for download in TODO 3
+      dataset_chosen_final_cap: 10 # Max final datasets (caps plan's target_num_datasets)
+      claude_agent:
+        model: claude-opus-4-6
+        max_turns: 200
+        agent_timeout: 5400 # 1.5 hours total
+        agent_retries: 2 # Retries for entire agent session (API errors)
+        seq_prompt_timeout: 2700 # 45 min per prompt
+        seq_prompt_retries: 3 # Retries per API call (network/rate limit)
+        message_timeout: 1200 # Per-message timeout (20 min — large downloads)
+        message_retries: 2 # Fork+resume attempts for message-level timeouts
+        use_aii_web_tools: false
+
+    # EXPERIMENT sub-module: Claude Code SDK agent
+    experiment:
+      verify_retries: 2 # Retries for missing expected files
+      schema_retries: 1 # Retries for schema validation errors
+      min_examples: 50 # Min examples in full_experiment_out.json
+      claude_agent:
+        model: claude-opus-4-6
+        max_turns: 200
+        agent_timeout: 7200 # 2 hours total
+        agent_retries: 2 # Retries for entire agent session (API errors)
+        seq_prompt_timeout: 3600 # 1 hour per prompt
+        seq_prompt_retries: 3 # Retries per API call (network/rate limit)
+        message_timeout: 1200 # Per-message timeout (20 min — experiments run long)
+        message_retries: 3 # Retries per message timeout
+        use_aii_web_tools: false
+
+    # EVALUATION sub-module: Claude Code SDK agent
+    evaluation:
+      verify_retries: 2 # Retries for missing expected files
+      schema_retries: 1 # Retries for schema validation errors
+      min_examples: 50 # Min examples in full_eval_out.json
+      claude_agent:
+        model: claude-opus-4-6
+        max_turns: 200
+        agent_timeout: 5400 # 1.5 hours total
+        agent_retries: 2 # Retries for entire agent session (API errors)
+        seq_prompt_timeout: 2700 # 45 min per prompt
+        seq_prompt_retries: 3 # Retries per API call (network/rate limit)
+        message_timeout: 900 # Per-message timeout (15 min — eval scripts)
+        message_retries: 2 # Fork+resume attempts for message-level timeouts
+        use_aii_web_tools: false
+
+    # PROOF sub-module: Claude Code SDK agent with Lean 4 verification
+    proof:
+      verify_retries: 2 # Retries for missing expected files
+      schema_retries: 1 # Retries for schema validation errors
+      claude_agent:
+        model: claude-opus-4-6
+        max_turns: 200
+        agent_timeout: 5400 # 1.5 hours total
+        agent_retries: 2 # Retries for entire agent session (API errors)
+        seq_prompt_timeout: 2700 # 45 min per prompt
+        seq_prompt_retries: 3 # Retries per API call (network/rate limit)
+        message_timeout: 900 # Per-message timeout (15 min — Lean compilation)
+        message_retries: 2 # Fork+resume attempts for message-level timeouts
+        use_aii_web_tools: false
+
+  # --- Step 3.4: GEN_NARR (Narrative generation from artifacts) ---
+  narrative:
+    start_at_iteration: 1 # Start generating narratives at iteration 2
+    narratives_per_round: 1
+    llm_client:
+      client: openrouter
+      llm_timeout: 600
+      models:
+        - model: openai/gpt-5-mini
+          reasoning_effort: medium
+          suffix: nitro
+        - model: anthropic/claude-sonnet-4.5
+          reasoning_effort: medium
+          suffix: nitro
+    use_claude_agent: true # Use Claude agent instead of OpenRouter
+    claude_agent:
+      model: claude-opus-4-6
+      max_turns: 150
+      agent_timeout: 2400 # 20 min total
+      agent_retries: 2
+      seq_prompt_timeout: 1800 # 10 min per prompt
+      seq_prompt_retries: 3
+      message_timeout: 300 # Per-message timeout (5 min)
+      message_retries: 3 # Fork+resume attempts for message-level timeouts
+      max_concurrent_agents: 30
+      use_aii_web_tools: false
+
+  # --- Convergence / Early Stopping (DISABLED) ---
+  # Stops the loop early if narrative quality plateaus.
+  # Uses two signals - stops when BOTH indicate no improvement for `patience` iterations.
+  # early_stopping:
+  #   patience: 2 # Wait N iterations before checking convergence
+  #   # Signal 1: Average BT score of all narratives isn't improving
+  #   # If avg BT score hasn't increased for `patience` iterations, signals plateau
+  #   check_average_bt_score: true
+  #   # Signal 2: Best narrative isn't from recent iterations
+  #   # If the globally top-ranked narrative is old (not from last 3 iterations), signals plateau
+  #   check_top_origin: true
+
+# ============================================================================
+# MODULE 4: GEN_PAPER_REPO (Paper + Repository Generation)
+# ============================================================================
+# SEQUENTIAL EXECUTION (concurrent sub-steps within each group):
+#   Step 1:  create_repo                             (quick setup)
+#   Step 2a: write_paper_text  ─┐
+#   Step 2b: gen_artifact_demos ─┘ concurrent
+#   Step 3:  gen_viz
+#   Step 4:  gen_full_paper
+#   Step 5:  deploy_to_repo                          (push to GitHub)
+#
+# Paper writer embeds <figure> placeholders with specs - no separate plan_viz step.
+gen_paper_repo:
+  # =========================================================================
+  # STEP 1: CREATE_REPO (Create GitHub repository — quick, no LLM)
+  # =========================================================================
+  create_repo:
+    enabled: true # Set to false to skip repo creation
+
+  # =========================================================================
+  # STEP 2a: WRITE_PAPER_TEXT (Generate paper drafts with figure placeholders)
+  # =========================================================================
+  # Uses multiple models for diversity - drafts distributed across models
+  write_paper_text:
+    variations: 1 # Number of paper drafts to generate
+    llm_client:
+      client: openrouter
+      llm_timeout: 600
+      models:
+        - model: openai/gpt-5-mini
+          reasoning_effort: medium
+          suffix: nitro
+    use_claude_agent: true # Use Claude agent instead of OpenRouter
+    claude_agent:
+      model: claude-opus-4-6
+      max_turns: 200
+      agent_timeout: 2400 # 30 min total
+      agent_retries: 2
+      seq_prompt_timeout: 1800 # 15 min per prompt
+      seq_prompt_retries: 3
+      message_timeout: 300 # Per-message timeout (5 min)
+      message_retries: 3 # Fork+resume attempts for message-level timeouts
+      max_concurrent_agents: 5
+      use_aii_web_tools: false
+    verify_retries: 2
+
+  # =========================================================================
+  # STEP 2b: GEN_ARTIFACT_DEMOS (Generate demo notebooks/scripts)
+  # =========================================================================
+  gen_artifact_demos:
+    enabled: true # Set to false to skip demo generation
+    max_notebook_total_runtime: 300 # Max seconds for notebook execution via nbconvert (agent uses this for timeout)
+    claude_agent:
+      model: claude-opus-4-6 # Claude model: claude-haiku-4-5, claude-sonnet-4-5, claude-opus-4-6
+      max_turns: 100
+      agent_timeout: 3600 # 40 min total
+      agent_retries: 2
+      seq_prompt_timeout: 2400 # 20 min per prompt
+      seq_prompt_retries: 3
+      message_timeout: 600 # Per-message timeout (20 min — notebook execution can take a while)
+      message_retries: 2 # Fork+resume attempts for message-level timeouts
+      max_concurrent_agents: 5
+      use_aii_web_tools: false
+
+  # =========================================================================
+  # STEP 3: GEN_VIZ (Generate figures from paper's placeholders)
+  # =========================================================================
+  # One figure per placeholder, no variations, no ranking.
+  # Two backends:
+  #   use_claude_agent=true  → Claude agent with aii_image_gen_nano_banana skill (recommended)
+  #   use_claude_agent=false → Direct Gemini image gen via OpenRouter (free_viz)
+  viz_gen:
+    # free_viz: Direct image generation via OpenRouter (used when use_claude_agent=false)
+    # Uses OpenRouter with modalities: ["image"] to get pure image output
+    free_viz:
+      client: openrouter
+      max_concurrent: 10 # Max concurrent figure generations
+      image_size: "2K" # Gemini image resolution: "1K" (default), "2K" (higher), "4K" (highest)
+      models:
+        - model: google/gemini-3-pro-image-preview
+          llm_timeout: 240
+
+    # Claude agent mode: uses aii_image_gen_nano_banana skill for generation + verification
+    use_claude_agent: true # Use Claude agent with nano_banana skill instead of direct Gemini
+    claude_agent:
+      model: claude-opus-4-6
+      max_turns: 20
+      agent_timeout: 1800 # 30 min total
+      agent_retries: 2
+      seq_prompt_timeout: 1200 # 20 min per prompt
+      seq_prompt_retries: 3
+      message_timeout: 300 # Per-message timeout (5 min)
+      message_retries: 3 # Fork+resume attempts for message-level timeouts
+      max_concurrent_agents: 5
+      use_aii_web_tools: false
+
+  # =========================================================================
+  # STEP 4: GEN_FULL_PAPER (Combine paper + figures → LaTeX/PDF)
+  # =========================================================================
+  gen_full_paper:
+    claude_agent:
+      model: claude-opus-4-6 # Claude model: claude-haiku-4-5, claude-sonnet-4-5, claude-opus-4-6
+      max_turns: 100
+      agent_timeout: 2400 # 40 min total
+      agent_retries: 2
+      seq_prompt_timeout: 1800 # 20 min per prompt
+      seq_prompt_retries: 3
+      message_timeout: 600 # Per-message timeout (10 min — LaTeX compilation)
+      message_retries: 2 # Fork+resume attempts for message-level timeouts
+      use_aii_web_tools: false
+
+  # =========================================================================
+  # STEP 5: DEPLOY_TO_REPO (Push everything to GitHub repository)
+  # =========================================================================
+  deploy_to_repo:
+    enabled: true # Set to false to skip repo deployment
+
+
+# ============================================================================
+# OPTIONAL MODULES (LLM-as-judge, disabled by default)
+# ============================================================================
+# These modules use LLM pairwise comparison tournaments for ranking.
+# To re-enable, uncomment the relevant section and add the step back to the
+# pipeline sequence in init.pipeline.
+#
+# audit_hypo:
+#   max_concurrent_audits: 30
+#   verify_citations:
+#     parallel_fetch: false
+#     retry: 3
+#     min_valid_citations: 3
+#   novelty:
+#     num_positive_per_llm: 1
+#     num_negative_per_llm: 1
+#     cap_mode: equal
+#     llm_client:
+#       client: openrouter
+#       llm_timeout: 120
+#       suffix: nitro
+#       models:
+#         - model: openai/gpt-5-mini
+#           reasoning_effort: low
+#           max_tool_iterations: 30
+#   feasibility:
+#     num_positive_per_llm: 1
+#     num_negative_per_llm: 1
+#     cap_mode: equal
+#     llm_client:
+#       client: openrouter
+#       suffix: nitro
+#       llm_timeout: 120
+#       models:
+#         - model: openai/gpt-5-mini
+#           reasoning_effort: low
+#
+# rank_hypo:
+#   max_rounds: 3
+#   bootstrap_opponents_per_hypo: 2
+#   early_stop_win_prob: 0.80
+#   swap_test_per_pair_per_llm: true
+#   votes_per_pair_per_llm: 1
+#   include_justification: true
+#   llm_client:
+#     client: openrouter
+#     llm_timeout: 120
+#     models:
+#       - model: anthropic/claude-sonnet-4.5
+#         reasoning_effort: low
+#         suffix: nitro
+#       - model: openai/gpt-5.2
+#         reasoning_effort: low
+#         suffix: nitro
+#
+# rank_strat (inside invention_loop):
+#   max_rounds: 3
+#   bootstrap_opponents_per_strat: 2
+#   votes_per_pair_per_llm: 1
+#   early_stop_win_prob: 0.80
+#   swap_test_per_pair_per_llm: true
+#   include_justification: true
+#   llm_client:
+#     client: openrouter
+#     llm_timeout: 120
+#     models:
+#       - model: anthropic/claude-sonnet-4.5
+#         reasoning_effort: low
+#         suffix: nitro
+#       - model: openai/gpt-5.2
+#         reasoning_effort: low
+#         suffix: nitro
+#
+# rank_plan (inside invention_loop):
+#   max_rounds: 3
+#   bootstrap_opponents_per_item: 2
+#   votes_per_pair_per_llm: 1
+#   early_stop_win_prob: 0.80
+#   swap_test_per_pair_per_llm: true
+#   include_justification: true
+#   llm_client:
+#     client: openrouter
+#     llm_timeout: 120
+#     models:
+#       - model: anthropic/claude-sonnet-4.5
+#         reasoning_effort: low
+#         suffix: nitro
+#       - model: openai/gpt-5.2
+#         reasoning_effort: low
+#         suffix: nitro
+#
+# rank_narr (inside invention_loop):
+#   max_rounds: 3
+#   bootstrap_opponents_per_item: 2
+#   votes_per_pair_per_llm: 1
+#   early_stop_win_prob: 0.80
+#   swap_test_per_pair_per_llm: true
+#   include_justification: true
+#   llm_client:
+#     client: openrouter
+#     llm_timeout: 120
+#     models:
+#       - model: openai/gpt-5-mini
+#         reasoning_effort: medium
+#         suffix: nitro
+#       - model: x-ai/grok-4.1-fast
+#         reasoning_effort: medium
+#         suffix: nitro
+#       - model: google/gemini-3-flash-preview
+#         reasoning_effort: medium
+#         suffix: nitro
+#
+# rank_paper_text (inside gen_paper_repo):
+#   num_winners: 1
+#   max_rounds: 4
+#   bootstrap_opponents_per_item: 2
+#   votes_per_pair_per_llm: 4
+#   early_stop_win_prob: 0.80
+#   swap_test_per_pair_per_llm: true
+#   include_justification: true
+#   llm_client:
+#     client: openrouter
+#     llm_timeout: 120
+#     models:
+#       - model: openai/gpt-5-mini
+#         reasoning_effort: medium
+#         suffix: nitro
+#       - model: x-ai/grok-4.1-fast
+#         reasoning_effort: medium
+#         suffix: nitro

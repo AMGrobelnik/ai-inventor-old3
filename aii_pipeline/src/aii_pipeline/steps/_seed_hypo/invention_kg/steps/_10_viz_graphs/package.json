@@ -1,0 +1,17 @@
+{
+  "name": "bblocks-graph-viz",
+  "version": "1.0.0",
+  "description": "Building Blocks Knowledge Graph Visualization",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "serve": "python3 -m http.server ${PORT:-9020}",
+    "dev": "concurrently \"npm run watch\" \"npm run serve\"",
+    "start": "npm run dev"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.30",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.9.3"
+  }
+}

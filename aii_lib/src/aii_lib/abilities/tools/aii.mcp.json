@@ -1,0 +1,28 @@
+{
+  "mcpServers": {
+    "tooluniverse-aii": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "--directory",
+        ".",
+        "run",
+        "python",
+        "-m",
+        "aii_lib.abilities.tools.run_tooluniverse",
+        "--include-tools",
+        "lean_run_code",
+        "openrouter_call_llm",
+        "openrouter_search_llms",
+        "aii_web_fetch_direct",
+        "aii_web_fetch_grep",
+        "aii_web_search_fast",
+        "dblp_bib_search"
+      ],
+      "env": {
+        "OPENAI_API_KEY": "",
+        "GEMINI_API_KEY": ""
+      }
+    }
+  }
+}
