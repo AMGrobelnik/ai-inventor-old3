@@ -388,6 +388,9 @@ async def run_gen_viz_module(
             model_short = get_model_short(claude_cfg.model)
 
             async def run_agent_task(counter: int, figure: Figure):
+                # Stagger agent launches by 5s each to avoid init contention
+                if counter > 0:
+                    await asyncio.sleep(counter * 5)
                 async with semaphore:
                     task_id = f"img_viz_{figure.id}__{model_short}"
                     return await generate_image_viz_agent(

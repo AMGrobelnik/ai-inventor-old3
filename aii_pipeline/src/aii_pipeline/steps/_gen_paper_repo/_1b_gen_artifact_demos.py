@@ -281,7 +281,10 @@ async def run_gen_artifact_demos_module(
                 return None
 
             async def convert_with_semaphore(task_data, task_seq):
-                """Convert notebook with semaphore control."""
+                """Convert notebook with semaphore control and staggered launch."""
+                # Stagger agent launches by 5s each to avoid init contention
+                if task_seq > 0:
+                    await asyncio.sleep(task_seq * 5)
                 async with semaphore:
                     return await convert_one(task_data, task_seq)
 

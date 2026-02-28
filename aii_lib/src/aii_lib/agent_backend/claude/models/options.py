@@ -107,7 +107,7 @@ class AgentOptions:
     hooks: dict[str, list[Any]] | None = None
     user: str | None = None
     include_partial_messages: bool = True
-    setting_sources: list[Literal['user', 'project', 'local']] = field(default_factory=list)  # Empty by default to prevent .mcp.json auto-loading; set ["project"] explicitly when skills are needed
+    setting_sources: list[Literal['user', 'project', 'local']] = field(default_factory=lambda: ["project"])  # Load project settings (skills, CLAUDE.md) by default
 
     # Resource selection (auto-prepared to workspace)
     selected_agents: list[Any] = field(default_factory=list)  # Agent names or AgentDefinition objects

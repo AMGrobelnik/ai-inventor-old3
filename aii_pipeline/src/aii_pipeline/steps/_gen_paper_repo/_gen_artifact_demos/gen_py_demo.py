@@ -100,7 +100,7 @@ async def convert_to_notebook(
             cwd=str(workspace_dir),
             system_prompt=get_notebook_sysprompt(),
             continue_seq_item=True,  # Continue conversation between prompts
-            mcp_servers=str(get_project_root() / ".mcp.json"),  # ToolUniverse MCP
+            # No MCP servers — demo agents only convert scripts to notebooks
             # AIITelemetry integration
             telemetry=telemetry,
             run_id=task_id,
