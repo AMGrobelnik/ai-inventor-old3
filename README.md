@@ -10,6 +10,7 @@ Automated research pipeline for generating, executing, and evaluating novel rese
 - **[uv](https://docs.astral.sh/uv/)** package manager
 - **[Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code)** — authenticate with `claude login`
 - **[GitHub CLI](https://cli.github.com/)** — authenticate with `gh auth login` (for repo creation in gen_paper_repo)
+- **[Lean 4 via elan](https://github.com/leanprover/elan)** — required for proof artifacts (scripts use Lean v4.14.0 with Mathlib)
 - **API keys** — see [API Keys](#api-keys)
 
 ## Quick Start
