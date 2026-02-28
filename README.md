@@ -58,15 +58,18 @@ uv pip install torch --index-url https://download.pytorch.org/whl/cpu
 uv pip install -e aii_lib/
 uv pip install -e aii_pipeline/
 
-# 5. Set up API keys
+# 5. Link skill venvs to main .venv
+for d in .claude/skills/*/scripts; do ln -sf "$PWD/.venv" "$d/.venv"; done
+
+# 6. Set up API keys
 cp .env.template .env
 nano .env  # Fill in your keys
 
-# 6. Authenticate CLI tools
+# 7. Authenticate CLI tools
 claude login
 gh auth login
 
-# 7. Configure and run
+# 8. Configure and run
 # Edit aii_pipeline/config.yaml (research_direction, pipeline steps)
 unset CLAUDECODE
 aii_pipeline

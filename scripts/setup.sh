@@ -141,7 +141,35 @@ uv pip install -e aii_pipeline/
 info "aii_pipeline installed"
 
 # -------------------------------------------------------------------------
-# 6. Set up .env
+# 6. Link skill venvs to main .venv
+# -------------------------------------------------------------------------
+echo ""
+echo "--- Linking skill venvs ---"
+
+SKILL_COUNT=0
+for skill_scripts in .claude/skills/*/scripts; do
+    if [[ -d "$skill_scripts" ]]; then
+        target="$skill_scripts/.venv"
+        if [[ -L "$target" ]]; then
+            : # Already a symlink, skip
+        elif [[ -d "$target" ]]; then
+            rm -rf "$target"
+            ln -s "$PROJECT_ROOT/.venv" "$target"
+            SKILL_COUNT=$((SKILL_COUNT + 1))
+        else
+            ln -s "$PROJECT_ROOT/.venv" "$target"
+            SKILL_COUNT=$((SKILL_COUNT + 1))
+        fi
+    fi
+done
+if [[ $SKILL_COUNT -gt 0 ]]; then
+    info "Linked $SKILL_COUNT skill venvs to .venv"
+else
+    info "All skill venvs already linked"
+fi
+
+# -------------------------------------------------------------------------
+# 7. Set up .env
 # -------------------------------------------------------------------------
 echo ""
 echo "--- Checking .env ---"
