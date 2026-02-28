@@ -10,7 +10,7 @@ description: Searches, previews, and downloads datasets from HuggingFace Hub. Us
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_hf_datasets/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/.venv/bin/python"
 ```
 
 ---
@@ -20,21 +20,21 @@ export PY=".claude/skills/aii_hf_datasets/scripts/.venv/bin/python"
 ### Phase 1: Search for Datasets
 Find datasets with metadata (configs, splits, features, sizes)
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_search_datasets.py --query "sentiment analysis" --limit 5
 ```
 
 ### Phase 2: Preview Dataset (if promising)
 Inspect metadata AND sample rows in one call
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_preview_datasets.py openai/gsm8k
 ```
 
 ### Phase 3: Download Dataset (if suitable)
 Download after reviewing the preview
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_download_datasets.py openai/gsm8k --config main --split train
 ```
 
@@ -48,7 +48,7 @@ Search and discover datasets on HuggingFace Hub.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_search_datasets.py --query "text classification" --limit 5
 ```
 
@@ -56,8 +56,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_search_datasets.py
 
 IMPORTANT: Use full python path with GNU parallel (venv activate does NOT work in parallel subshells):
 ```bash
-export PY=".claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_hf_datasets/scripts/aii_hf_search_datasets.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/aii_hf_search_datasets.py" && \
 parallel -j 10 -k --group --will-cite '$PY $S --query {} --limit 3' ::: 'sentiment' 'classification' 'translation'
 ```
 
@@ -101,7 +101,7 @@ Inspect a specific dataset - shows metadata AND sample rows.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_preview_datasets.py openai/gsm8k --num-rows 5
 ```
 
@@ -109,8 +109,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_preview_datasets.p
 
 IMPORTANT: Use full python path with GNU parallel:
 ```bash
-export PY=".claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_hf_datasets/scripts/aii_hf_preview_datasets.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/aii_hf_preview_datasets.py" && \
 parallel -j 10 -k --group --will-cite '$PY $S {} --num-rows 3' ::: 'openai/gsm8k' 'imdb' 'squad'
 ```
 
@@ -162,7 +162,7 @@ Download datasets and save to files.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_hf_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_download_datasets.py openai/gsm8k --config main --split train
 ```
 
@@ -170,8 +170,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_hf_download_datasets.
 
 IMPORTANT: Use full python path with GNU parallel. Use `eval {}` pattern when datasets need different flags (e.g. `--config`):
 ```bash
-export PY=".claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_hf_datasets/scripts/aii_hf_download_datasets.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_hf_datasets/scripts/aii_hf_download_datasets.py" && \
 parallel -j 10 -k --group --will-cite 'eval {}' ::: '$PY $S openai/gsm8k --config main --split train' '$PY $S imdb --split train' '$PY $S squad --split train'
 ```
 

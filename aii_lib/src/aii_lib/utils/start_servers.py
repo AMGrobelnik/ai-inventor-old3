@@ -139,81 +139,81 @@ def ensure_server_running(
     if not use_zellij:
         log("zellij not available — using direct background processes")
 
+    def _start_server(
+        name: str,
+        port: int,
+        zellij_script: Path,
+        module: str,
+        module_args: list[str] | None = None,
+        env_extra: dict | None = None,
+        check_healthy: bool = False,
+    ) -> bool:
+        """Start a server, trying zellij first then falling back to direct background."""
+        check = is_server_healthy if check_healthy else is_port_open
+        if check(port):
+            log(f"{name} already running")
+            return True
+
+        log(f"Starting {name}...")
+
+        # Try zellij first
+        if use_zellij:
+            # Clean stale sessions before attempting
+            session = zellij_script.stem.replace("start_", "")
+            subprocess.run(["zellij", "delete-session", session], capture_output=True)
+            result = _start_via_zellij(zellij_script)
+            if result.returncode == 0 and _wait_for_port(port, timeout=10):
+                log(f"{name} started (zellij)")
+                return True
+            log(f"{name} zellij failed, falling back to direct...")
+
+        # Direct background fallback
+        ok = _start_direct_background(
+            module=module,
+            port=port,
+            args=module_args,
+            env_extra=env_extra,
+        )
+        if ok:
+            log(f"{name} started (direct)")
+            return True
+
+        log(f"Failed to start {name}")
+        return False
+
     # === Ability Server ===
     log(f"Checking ability server on port {port}...")
-
-    if is_server_healthy(port):
-        log("Ability server already running")
-    else:
-        log("Starting ability server...")
-        if use_zellij:
-            result = _start_via_zellij(START_ABILITY_SCRIPT)
-            if result.returncode == 0:
-                log("Ability server started successfully")
-            else:
-                log(f"Failed to start ability server: {result.stderr}")
-                all_ok = False
-        else:
-            ok = _start_direct_background(
-                module="aii_lib.abilities.ability_server.endpoints",
-                port=port,
-                env_extra={"AII_SKIP_MCP_SUBPROCESS": "1"},
-            )
-            if ok:
-                log("Ability server started successfully (direct)")
-            else:
-                log("Failed to start ability server (direct, 30s timeout)")
-                all_ok = False
+    if not _start_server(
+        name="Ability server",
+        port=port,
+        zellij_script=START_ABILITY_SCRIPT,
+        module="aii_lib.abilities.ability_server.endpoints",
+        env_extra={"AII_SKIP_MCP_SUBPROCESS": "1"},
+        check_healthy=True,
+    ):
+        all_ok = False
 
     # === AII ToolUniverse (port 8101) ===
     log(f"Checking AII ToolUniverse on port {AII_TOOLUNIVERSE_PORT}...")
-
-    if is_port_open(AII_TOOLUNIVERSE_PORT):
-        log("AII ToolUniverse already running")
-    else:
-        log("Starting AII ToolUniverse...")
-        if use_zellij:
-            result = _start_via_zellij(START_AII_SCRIPT)
-            if result.returncode == 0:
-                log("AII ToolUniverse started successfully")
-            else:
-                log(f"Failed to start AII ToolUniverse: {result.stderr}")
-                all_ok = False
-        else:
-            ok = _start_direct_background(
-                module="aii_lib.abilities.mcp_server.server",
-                port=AII_TOOLUNIVERSE_PORT,
-                args=["aii_tooluniverse"],
-            )
-            if ok:
-                log("AII ToolUniverse started successfully (direct)")
-            else:
-                log("WARN: AII ToolUniverse failed to start — pipeline steps using MCP tools will use built-in alternatives")
+    if not _start_server(
+        name="AII ToolUniverse",
+        port=AII_TOOLUNIVERSE_PORT,
+        zellij_script=START_AII_SCRIPT,
+        module="aii_lib.abilities.mcp_server.server",
+        module_args=["aii_tooluniverse"],
+    ):
+        log("WARN: pipeline steps using MCP tools will use built-in alternatives")
 
     # === Full ToolUniverse (port 8102) ===
     log(f"Checking Full ToolUniverse on port {FULL_TOOLUNIVERSE_PORT}...")
-
-    if is_port_open(FULL_TOOLUNIVERSE_PORT):
-        log("Full ToolUniverse already running")
-    else:
-        log("Starting Full ToolUniverse...")
-        if use_zellij:
-            result = _start_via_zellij(START_FULL_SCRIPT)
-            if result.returncode == 0:
-                log("Full ToolUniverse started successfully")
-            else:
-                log(f"Failed to start Full ToolUniverse: {result.stderr}")
-                all_ok = False
-        else:
-            ok = _start_direct_background(
-                module="aii_lib.abilities.mcp_server.server",
-                port=FULL_TOOLUNIVERSE_PORT,
-                args=["full_tooluniverse"],
-            )
-            if ok:
-                log("Full ToolUniverse started successfully (direct)")
-            else:
-                log("WARN: Full ToolUniverse failed to start — invention loop steps may need it")
+    if not _start_server(
+        name="Full ToolUniverse",
+        port=FULL_TOOLUNIVERSE_PORT,
+        zellij_script=START_FULL_SCRIPT,
+        module="aii_lib.abilities.mcp_server.server",
+        module_args=["full_tooluniverse"],
+    ):
+        log("WARN: invention loop steps may need Full ToolUniverse")
 
     return all_ok
 

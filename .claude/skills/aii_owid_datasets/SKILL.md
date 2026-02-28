@@ -10,7 +10,7 @@ description: Search and load datasets from Our World in Data catalog using BM25 
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_owid_datasets/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets/scripts/.venv/bin/python"
 ```
 
 ---
@@ -20,14 +20,14 @@ export PY=".claude/skills/aii_owid_datasets/scripts/.venv/bin/python"
 ### Phase 1: Search for Tables
 Find tables with metadata (title, description, variables)
 ```bash
-SKILL_DIR=".claude/skills/aii_owid_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_search_datasets.py "renewable energy" --limit 5
 ```
 
 ### Phase 2: Download Table (if suitable)
 Download the table after reviewing the search results
 ```bash
-SKILL_DIR=".claude/skills/aii_owid_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_download_datasets.py "grapher/energy/2023-12-12/energy_mix"
 ```
 
@@ -39,7 +39,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_download_dataset
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_owid_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_search_datasets.py "climate change" --limit 3
 ```
 
@@ -47,8 +47,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_search_datasets.
 
 IMPORTANT: When running multiple searches, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_owid_datasets/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_owid_datasets/scripts/aii_owid_search_datasets.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets/scripts/aii_owid_search_datasets.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {} --limit 3' ::: 'renewable energy' 'climate change' 'covid mortality'
 ```
 
@@ -92,7 +92,7 @@ Download a table by path (from search results) and save to files.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_owid_datasets" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_download_datasets.py "grapher/energy/2023-12-12/energy_mix"
 ```
 
@@ -100,8 +100,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_owid_download_dataset
 
 IMPORTANT: When downloading multiple tables, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_owid_datasets/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_owid_datasets/scripts/aii_owid_download_datasets.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_owid_datasets/scripts/aii_owid_download_datasets.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {}' ::: 'grapher/energy/2023-12-12/energy_mix' 'grapher/demography/2023-10-10/population' 'grapher/health/2023-08-01/life_expectancy'
 ```
 

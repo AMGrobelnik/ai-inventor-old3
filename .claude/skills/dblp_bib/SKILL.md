@@ -10,7 +10,7 @@ description: Build bibliographies using DBLP. Search for papers by author/title/
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/dblp_bib/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib/scripts/.venv/bin/python"
 ```
 
 ---
@@ -23,7 +23,7 @@ Search DBLP for papers. Returns metadata (title, authors, venue, year, `dblp_key
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/dblp_bib" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/dblp_bib_search.py --query "Vaswani attention 2017"
 ```
 
@@ -31,8 +31,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/dblp_bib_search.py --quer
 
 IMPORTANT: When searching for multiple papers, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/dblp_bib/scripts/.venv/bin/python" && \
-export S=".claude/skills/dblp_bib/scripts/dblp_bib_search.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib/scripts/dblp_bib_search.py" && \
 parallel -j 5 -k --group --will-cite '$PY $S -q {}' ::: 'Vaswani attention 2017' 'Wei chain of thought 2022' 'Yao tree of thoughts 2023'
 ```
 
@@ -74,13 +74,13 @@ Fetch BibTeX entries by `dblp_key`. Returns ready-to-use BibTeX strings.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/dblp_bib" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/dblp_bib_fetch.py --keys "conf/nips/VaswaniSPUJGKP17" --years 2017
 ```
 
 **Multiple keys in one call:**
 ```bash
-SKILL_DIR=".claude/skills/dblp_bib" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/dblp_bib" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/dblp_bib_fetch.py \
   --keys "conf/nips/VaswaniSPUJGKP17" "conf/nips/YaoYZS00N23" \
   --years 2017 2023

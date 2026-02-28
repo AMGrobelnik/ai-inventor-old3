@@ -10,7 +10,7 @@ description: JSON validation and formatting toolkit. Validate JSON files against
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_json/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_json/scripts/.venv/bin/python"
 ```
 
 ---
@@ -26,7 +26,7 @@ Validate JSON files against predefined schemas for experiment-based hypothesis s
 3. Validate:
 
 ```bash
-SKILL_DIR=".claude/skills/aii_json" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_json" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_validate_schema.py --format exp_eval_sol_out --file /path/to/eval_out.json
 ```
 
@@ -34,7 +34,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_validate_schema.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_json" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_json" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_validate_schema.py --format exp_eval_sol_out --file /tmp/eval_out.json
 ```
 
@@ -42,8 +42,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_validate_schema.
 
 IMPORTANT: When validating multiple files, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_json/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_json/scripts/aii_json_validate_schema.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_json/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_json/scripts/aii_json_validate_schema.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S --format {1} --file {2}' ::: 'exp_sel_data_out' 'exp_gen_sol_out' 'exp_eval_sol_out' :::+ '/tmp/full_data_out.json' '/tmp/method_out.json' '/tmp/eval_out.json'
 ```
 
@@ -111,7 +111,7 @@ Generate three size-optimized versions of a JSON file for efficient development 
 ### Quick Start
 
 ```bash
-SKILL_DIR=".claude/skills/aii_json" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_json" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_format_mini_preview.py --input method_out.json
 ```
 
@@ -119,7 +119,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_format_mini_prev
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_json" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_json" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_format_mini_preview.py --input method_out.json
 ```
 
@@ -127,8 +127,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_json_format_mini_prev
 
 IMPORTANT: When formatting multiple files, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_json/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_json/scripts/aii_json_format_mini_preview.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_json/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_json/scripts/aii_json_format_mini_preview.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S --input {}' ::: 'full_data_out.json' 'method_out.json' 'eval_out.json'
 ```
 

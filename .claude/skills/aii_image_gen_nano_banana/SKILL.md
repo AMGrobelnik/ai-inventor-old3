@@ -12,7 +12,7 @@ description: AI image generation for research figures using Gemini API directly 
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_image_gen_nano_banana/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_image_gen_nano_banana/scripts/.venv/bin/python"
 ```
 
 ---
@@ -29,7 +29,7 @@ The model generates from your text description ONLY. It cannot read data files, 
 ### Phase 2: Generate Image
 
 ```bash
-SKILL_DIR=".claude/skills/aii_image_gen_nano_banana" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_image_gen_nano_banana" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_image_gen_nano_banana.py \
   --prompt "Grouped bar chart with white background..." \
   --output ./figures/fig_1.png \
@@ -48,7 +48,7 @@ Generate research figures via Gemini API (`gemini-3-pro-image-preview`).
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_image_gen_nano_banana" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_image_gen_nano_banana" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_image_gen_nano_banana.py \
   --prompt "Bar chart with white background. X-axis: models. Y-axis: accuracy (0 to 1). Values: GPT-4=0.85, Claude=0.91, Baseline=0.45. Blue, orange, gray bars. Sans-serif labels, no gridlines." \
   --output ./figures/fig_1.png \
@@ -60,8 +60,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_image_gen_nano_banana
 
 IMPORTANT: When generating multiple figures, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_image_gen_nano_banana/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_image_gen_nano_banana/scripts/aii_image_gen_nano_banana.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_image_gen_nano_banana/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_image_gen_nano_banana/scripts/aii_image_gen_nano_banana.py" && \
 parallel -j 3 -k --group --will-cite 'eval {}' ::: \
   '$PY $S -p "Bar chart..." -o ./figures/fig_1.png --style neurips' \
   '$PY $S -p "Line plot..." -o ./figures/fig_2.png --style neurips' \

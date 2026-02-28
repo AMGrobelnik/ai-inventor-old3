@@ -10,7 +10,7 @@ description: Searches and calls LLMs from OpenRouter's extensive catalog (Claude
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_openrouter_llms/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/.venv/bin/python"
 ```
 
 ---
@@ -20,21 +20,21 @@ export PY=".claude/skills/aii_openrouter_llms/scripts/.venv/bin/python"
 ### Phase 1: Search for Models
 Find models with pricing, context length, and descriptions
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_search_llms.py "claude" --limit 5
 ```
 
 ### Phase 2 (optional): Get Model Parameters
 Check what parameters a specific model supports
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_get_llm_params.py "anthropic/claude-haiku-4.5"
 ```
 
 ### Phase 3: Call Model
 Call a model using the API name from search results
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py --model "anthropic/claude-haiku-4.5" --input "What is 2+2?"
 ```
 
@@ -46,7 +46,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py --mod
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_search_llms.py "claude" --limit 5
 ```
 
@@ -54,8 +54,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_search_llms.py "cl
 
 IMPORTANT: When running multiple searches, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_openrouter_llms/scripts/aii_or_search_llms.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/aii_or_search_llms.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {} --limit 5' ::: 'claude' 'gpt' 'gemini'
 ```
 
@@ -103,7 +103,7 @@ Get detailed information and supported parameters for a specific model.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_get_llm_params.py "anthropic/claude-haiku-4.5"
 ```
 
@@ -111,8 +111,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_get_llm_params.py 
 
 IMPORTANT: When checking multiple models, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_openrouter_llms/scripts/aii_or_get_llm_params.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/aii_or_get_llm_params.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {}' ::: 'anthropic/claude-haiku-4.5' 'openai/gpt-4o-mini' 'google/gemini-2.0-flash-001'
 ```
 
@@ -165,7 +165,7 @@ Make an API call to an OpenRouter LLM model.
 
 **Example input:**
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py --model "anthropic/claude-haiku-4.5" --input "What is 2+2?"
 ```
 
@@ -173,8 +173,8 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py --mod
 
 IMPORTANT: When calling multiple models, use GNU parallel instead of separate Bash tool calls:
 ```bash
-export PY=".claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_openrouter_llms/scripts/aii_or_call_llms.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms/scripts/aii_or_call_llms.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S --model {} --input "What is 2+2?"' ::: 'anthropic/claude-haiku-4.5' 'openai/gpt-4o-mini' 'google/gemini-2.0-flash-001'
 ```
 
@@ -230,7 +230,7 @@ Tokens: 12 in, 5 out
 
 Simple call:
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
   --model "anthropic/claude-sonnet-4" \
   --input "Write a haiku about coding" \
@@ -239,7 +239,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
 
 With system instructions:
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
   --model "anthropic/claude-haiku-4.5" \
   --input "Explain recursion" \
@@ -248,7 +248,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
 
 With reasoning (for o1-style models):
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
   --model "openai/o1" \
   --input "Solve this complex math problem" \
@@ -257,7 +257,7 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
 
 With web search:
 ```bash
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
   --model "anthropic/claude-sonnet-4" \
   --input "What are the latest AI news?" \
@@ -268,12 +268,12 @@ $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
 With extra model-specific params:
 ```bash
 # Step 1: Check what params the model supports
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_get_llm_params.py "meta-llama/llama-3.3-70b-instruct"
 # Shows: frequency_penalty, top_k, seed, min_p, etc.
 
 # Step 2: Call with those params
-SKILL_DIR=".claude/skills/aii_openrouter_llms" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_openrouter_llms" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_or_call_llms.py \
   --model "meta-llama/llama-3.3-70b-instruct" \
   --input "Write a short poem" \

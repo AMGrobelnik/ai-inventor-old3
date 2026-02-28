@@ -5,7 +5,7 @@ description: Compiles and verifies Lean 4 code using lean-interact. Use for chec
 
 **IMPORTANT - Parallel execution:** GNU `parallel` subshells do NOT inherit `source activate`. Use `export` for variables and **single-quoted** command templates so parallel's subshells can resolve them:
 ```
-export PY=".claude/skills/aii_lean/scripts/.venv/bin/python"
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/.venv/bin/python"
 ```
 
 ## Workflow: Sorry-Driven Proof Development
@@ -25,18 +25,18 @@ theorem my_theorem (x y : Int) (h : x < y) : x + 1 ≤ y := by
 Find existing theorems by concept (semantic) or type pattern:
 ```bash
 # Semantic: natural language
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_mathlib_semantic_search.py "integer less than implies add one le"
 
 # Pattern: type signatures via Loogle
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_mathlib_pattern_search.py "Int.lt_iff_add_one_le"
 ```
 
 ### Step 3: Try Tactics at Sorry Positions
 Submit code with sorry and let the suggest tool try tactics:
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_lean_suggest.py \
   --code "import Mathlib.Tactic
 theorem ex : 1 + 1 = 2 := by sorry" \
@@ -51,7 +51,7 @@ Replace each sorry with the tactic that worked. Sorrys can be filled in any orde
 ### Step 5: Verify Complete Proof
 Compile the full proof — a clean compile with no sorrys means done:
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 echo 'import Mathlib.Tactic
 theorem ex (x y : Int) (h : x < y) : x + 1 ≤ y := by linarith' | $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_run_lean.py -
 ```
@@ -67,14 +67,14 @@ theorem ex (x y : Int) (h : x < y) : x + 1 ≤ y := by linarith' | $SKILL_DIR/sc
 Compile and verify Lean 4 code. Mathlib always enabled. Returns JSON with goal states at sorry positions.
 
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 echo 'theorem test : 1 + 1 = 2 := rfl' | $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_run_lean.py -
 ```
 
 **Parallel execution:**
 ```bash
-export PY=".claude/skills/aii_lean/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_lean/scripts/aii_run_lean.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/aii_run_lean.py" && \
 parallel -j 30 -k --group --will-cite '$PY $S {}' ::: proof1.lean proof2.lean
 ```
 
@@ -117,7 +117,7 @@ parallel -j 30 -k --group --will-cite '$PY $S {}' ::: proof1.lean proof2.lean
 Try tactics at sorry positions. Extracts goals, runs each tactic, reports what works.
 
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_lean_suggest.py \
   --code "import Mathlib.Tactic
 theorem ex : 1 + 1 = 2 := by sorry" \
@@ -156,14 +156,14 @@ theorem ex : 1 + 1 = 2 := by sorry" \
 Natural language search over Mathlib via LeanExplore API.
 
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_mathlib_semantic_search.py "continuous function composition"
 ```
 
 **Parallel execution:**
 ```bash
-export PY=".claude/skills/aii_lean/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_lean/scripts/aii_mathlib_semantic_search.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/aii_mathlib_semantic_search.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {} --limit 5' ::: 'prime number theorem' 'continuous function'
 ```
 
@@ -190,14 +190,14 @@ Found 50 results for: continuous function composition
 Search by type signature and patterns via Loogle API.
 
 ```bash
-SKILL_DIR=".claude/skills/aii_lean" && \
+SKILL_DIR="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean" && \
 $SKILL_DIR/scripts/.venv/bin/python $SKILL_DIR/scripts/aii_mathlib_pattern_search.py "List.map"
 ```
 
 **Parallel execution:**
 ```bash
-export PY=".claude/skills/aii_lean/scripts/.venv/bin/python" && \
-export S=".claude/skills/aii_lean/scripts/aii_mathlib_pattern_search.py" && \
+export PY="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/.venv/bin/python" && \
+export S="$(git rev-parse --show-toplevel)/.claude/skills/aii_lean/scripts/aii_mathlib_pattern_search.py" && \
 parallel -j 50 -k --group --will-cite '$PY $S {} --limit 10' ::: 'List.map' 'Nat.Prime'
 ```
 
