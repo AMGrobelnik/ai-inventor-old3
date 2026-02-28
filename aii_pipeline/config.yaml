@@ -155,8 +155,8 @@ seed_hypo:
 # Tools: aii_web_search_fast (Serper API), aii_web_fetch_direct (aiohttp)
 # Total hypotheses = (seeded + unseeded) × num_models
 gen_hypo:
-  seeded_hypos_per_llm: 0 # Hypotheses with inspiration seeds from prep_context
-  unseeded_hypos_per_llm: 1 # Hypotheses without seeds (open generation)
+  seeded_hypos_per_llm: 1 # Hypotheses with inspiration seeds from prep_context
+  unseeded_hypos_per_llm: 0 # Hypotheses without seeds (open generation)
   research_grounding: false # Disable MCP tools (aii_web_search_fast etc.) — agent uses built-in WebSearch/WebFetch instead
 
   llm_client:
