@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 API_URL = "https://openrouter.ai/api/v1/responses"
 SERVER_NAME = "aii_openrouter_call"

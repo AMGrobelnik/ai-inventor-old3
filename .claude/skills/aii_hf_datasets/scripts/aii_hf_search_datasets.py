@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 SERVER_NAME = "aii_hf_search_datasets"
 CONNECTION_TIMEOUT = 180  # seconds

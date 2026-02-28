@@ -15,7 +15,9 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Load project root .env (7 levels up to ai-inventor-old-new/)
+_project_root = Path(__file__).resolve().parents[6]
+load_dotenv(_project_root / ".env")
 
 SERVER_NAME = "aii_web_search"
 DEFAULT_TIMEOUT = 120.0

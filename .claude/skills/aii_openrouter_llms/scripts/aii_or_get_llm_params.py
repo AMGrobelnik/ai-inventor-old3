@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[4] / ".env")
 
 MODELS_URL = "https://openrouter.ai/api/v1/models"
 SERVER_NAME = "aii_openrouter_get_params"

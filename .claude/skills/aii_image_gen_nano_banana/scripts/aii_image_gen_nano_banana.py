@@ -25,7 +25,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).resolve().parents[4] / ".env")
-load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=True)
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GOOGLE_API_KEY", "")
 SERVER_NAME = "aii_image_gen_nano_banana"
