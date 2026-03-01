@@ -30,7 +30,7 @@ from PIL import Image
 from aii_lib import OpenRouterClient, AIITelemetry, MessageType, JSONSink, get_model_short
 from aii_lib.agent_backend import Agent, AgentOptions, aggregate_summaries
 
-from aii_pipeline.utils import PipelineConfig, rel_path, get_project_root
+from aii_pipeline.utils import PipelineConfig, rel_path
 from aii_pipeline.prompts.steps._4_gen_paper_repo._2a_viz_gen.schema import (
     Figure,
     VizFigureOutput,
@@ -91,7 +91,6 @@ async def generate_image_viz_agent(
             max_turns=max_turns,
             permission_mode="bypassPermissions",
             system_prompt=system_prompt,
-            mcp_servers=str(get_project_root() / ".mcp.json"),  # ToolUniverse MCP (nano_banana skill)
             # Telemetry integration
             telemetry=telemetry,
             run_id=task_id,
